@@ -30,7 +30,7 @@ void loop() {
     digitalWrite(6,LOW);
     delay(100);
   }
-  // if data received as reverse move robot reverse
+  // if data received as backward move robot bacward
  
   else if(readdata == "backward")
   {
@@ -40,7 +40,7 @@ void loop() {
     digitalWrite(6,HIGH);
     delay(100);
   }
-// if data received as right turn robot to right direction.
+// if data received as left turn robot to left direction.
   else if (readdata == "left")
   {
     digitalWrite (3,HIGH);
@@ -48,9 +48,18 @@ void loop() {
     digitalWrite (5,LOW);
     digitalWrite (6,LOW);
     delay (100);
+    
+    // if data received as reverse turn robot to reverse .
+  else if (readdata == "reverse")
+  {
+    digitalWrite (3,HIGH);
+    digitalWrite (4,LOW);
+    digitalWrite (5,LOW);
+    digitalWrite (6,HIGH);
+    delay (100);
    
   }
-// if data received as left turn robot to left direction
+// if data received as right turn robot to right direction
  else if ( readdata == "right")
  {
    digitalWrite (3, LOW);
