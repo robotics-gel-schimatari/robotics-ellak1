@@ -53,7 +53,7 @@
 | Arduino Uno Rev3                      | ![](/Images/arduino_uno.jpg)    | 9,85                                |
 | HC-06 Bluetooth RF Transceiver Module | ![](/Images/bt2.jpg)            | 7,50                                |
 | Ολοκληρωμένο L293D                    | ![](/Images/L293Ds.jpg)          | 3,00                                |
-| Breadboard                            | ![](/Images/breadboard.jpg)     | 1,05                                |
+| Breadboard *                          | ![](/Images/breadboard.jpg)     | 1,05                                |
 | Καλώδια κλπ                           | ![](/Images/wires.jpg)          | 2,00                                |
 | Πλατφόρμα (όχημα) robot               | ![](/Images/platform.jpg)       | 15,00                               |
 | Θήκη για μπαταρίες                    | ![](/Images/battery_holder.jpg) | 2,00                                |
@@ -63,7 +63,7 @@
 
 Το κόστος έχει υπολογιστεί με τιμές σε ελληνικά ηλεκτρονικά καταστήματα που πωλούν ηλεκτρονικά εξαρτήματα.
 
-
+*: εναλλακτικά αντί για ένα κανονικό breadboard, χρησιμοποιήσαμε ένα μικρότερο κολλημένο πάνω στο Arduino.
 
 ### 3.1 Οδηγός μοτέρ L293D 
 
@@ -77,21 +77,25 @@
 
 ![](/Images/h-bridge.jpg)
 
-<center>Σχήμα</u>: Συνδεσμολογία Η-bridge</center>
+<u>Σχήμα</u>: Συνδεσμολογία Η-bridge
+
+
 
 Αυτό το πρόβλημα έρχονται να λύσουν οι γέφυρες Η (και γενικότερα τα κυκλώματα οδήγησης). Οι γέφυρες Η αυτές που μετατρέπουν τα «ασθενικά» σήματα τάσης, που λαμβάνουν από τον ηλεκτρονικό εγκέφαλο, σε ανάλογα «ισχυρά» σήματα ρεύματος ώστε να λειτουργήσουν οι κινητήρες. Πέρα από αυτό δεν κάνουν τίποτα άλλο. Το arduino  αίναι αυτό που ευθύνεται για τον τελικό τρόπο λειτουργίας των κινητήρων (θα περιστρέφονται δεξιόστροφα, αριστερόστροφα, με πλήρης στροφές ή κάποιο ποσοστό στροφών, τη χρονική διάρκεια περιστροφής κτλ). Φυσικά ο τρόπος λειτουργίας των κινητήρων καθορίζεται από το πρόγραμμα που εκτελείται στο arduino.
 
 ![](/Images/hbridge.jpg)
 
-<center>Σχήμα</u>: Συνδεσμολογία Η-bridge</center>
+<u>Σχήμα</u>: Συνδεσμολογία Η-bridge
 
 ![](/Images/L293D.jpg)
 
-<center>Σχήμα</u>: To ολοκληρωμένο L2930</center>
+<u>Σχήμα</u>: To ολοκληρωμένο L2930
 
 ![](/Images/L293D_connections.jpg)
 
-<center>Σχήμα: Συνδεσμολογία στο L2930</center>
+<u>Σχήμα</u>: Συνδεσμολογία στο L2930
+
+
 
 Όταν συνδέσουμε το breadboard, θα πρέπει να διασφαλιστεί ότι το IC είναι ο σωστά τοποθετημένο. Η εγκοπή πρέπει να είναι προς τα αριστερά του breadboard.
 
@@ -139,83 +143,85 @@
 #include <SoftwareSerial.h>
 
 SoftwareSerial BT(10, 11); //TX, RX respetively
-String readvoice;
+String readdata;
 
 void setup() {
- BT.begin(9600);
- Serial.begin(9600);
-  pinMode(3, OUTPUT);
-  pinMode(4, OUTPUT);
-  pinMode(5, OUTPUT);
-  pinMode(6, OUTPUT);
-
+  BT.begin(9600);
+  Serial.begin(9600);
+  pinMode(3, OUTPUT); // connect to input 1 of l293d
+  pinMode(4, OUTPUT); // connect to input 4 of l293d
+  pinMode(5, OUTPUT); // connect to input 3 of l293d
+  pinMode(6, OUTPUT); // connect to input 2 of l293d
 }
-//-----------------------------------------------------------------------// 
+
+//-----------------------------------------------------------------------//
 void loop() {
-  while (BT.available()){  //Check if there is an available byte to read
-  delay(10); //Delay added to make thing stable
-  char c = BT.read(); //Conduct a serial read
-  readvoice += c; //build the string- "forward", "reverse", "left" and "right"
-  } 
-  if (readvoice.length() > 0) {
-    Serial.println(readvoice);
-
-  if(readvoice == "forward")
-  {
-    digitalWrite(3, HIGH);
-    digitalWrite (4, HIGH);
-    digitalWrite(5,LOW);
-    digitalWrite(6,LOW);
-    delay(100);
+  while (BT.available()) { //Check if there is an available byte to read
+    delay(10); //Delay added to make thing stable
+    char c = BT.read(); //Conduct a serial read
+    readdata += c; //build the string- "forward", "reverse", "left" and "right"
   }
+  if (readdata.length() > 0) {
+    Serial.println(readdata); // print data to serial monitor
+    // if data received as forward move robot forward
+    if (readdata == "forward")
+    {
+      digitalWrite(3, HIGH);
+      digitalWrite (4, HIGH);
+      digitalWrite(5, LOW);
+      digitalWrite(6, LOW);
+      delay(100);
+    }
+    // if data received as backward move robot bacward
 
-  else if(readvoice == "backward")
-  {
-    digitalWrite(3, LOW);
-    digitalWrite(4, LOW);
-    digitalWrite(5, HIGH);
-    digitalWrite(6,HIGH);
-    delay(100);
+    else if (readdata == "backward")
+    {
+      digitalWrite(3, LOW);
+      digitalWrite(4, LOW);
+      digitalWrite(5, HIGH);
+      digitalWrite(6, HIGH);
+      delay(100);
+    }
+    // if data received as left turn robot to left direction.
+    else if (readdata == "left")
+    {
+      digitalWrite (3, HIGH);
+      digitalWrite (4, LOW);
+      digitalWrite (5, LOW);
+      digitalWrite (6, LOW);
+      delay (100);
+    }
+    // if data received as reverse turn robot to reverse .
+    else if (readdata == "reverse")
+    {
+      digitalWrite (3, HIGH);
+      digitalWrite (4, LOW);
+      digitalWrite (5, LOW);
+      digitalWrite (6, HIGH);
+      delay (100);
+
+    }
+    // if data received as right turn robot to right direction
+    else if ( readdata == "right")
+    {
+      digitalWrite (3, LOW);
+      digitalWrite (4, HIGH);
+      digitalWrite (5, LOW);
+      digitalWrite (6, LOW);
+      delay (100);
+    }
+    // if data received as stop, halt the robot
+    else if (readdata == "stop")
+    {
+      digitalWrite (3, LOW);
+      digitalWrite (4, LOW);
+      digitalWrite (5, LOW);
+      digitalWrite (6, LOW);
+      delay (100);
+    }
+    readdata = "";
   }
-
-  else if (readvoice == "right")
-  {
-    digitalWrite (3,LOW);
-    digitalWrite (4,HIGH);
-    digitalWrite (5,LOW);
-    digitalWrite (6,LOW);
-    delay (100);
-  
-  }
-
- else if ( readvoice == "left")
- {
-   digitalWrite (3, HIGH);
-   digitalWrite (4, LOW);
-   digitalWrite (5, LOW);
-   digitalWrite (6, LOW);
-   delay (100);
- }
-
-  else if (readvoice == "reverse")
-  {
-    digitalWrite (3,LOW);
-    digitalWrite (4,HIGH);
-    digitalWrite (5,HIGH);
-    digitalWrite (6,LOW);
-    delay (100);
-  
-  }
-
- else if (readvoice == "stop")
- {
-   digitalWrite (3, LOW);
-   digitalWrite (4, LOW);
-   digitalWrite (5, LOW);
-   digitalWrite (6, LOW);
-   delay (100);
- }
-readvoice="";}} //Reset the variable
+}
 ```
 
 
@@ -225,6 +231,8 @@ readvoice="";}} //Reset the variable
 Το MIT App Inventor είναι ένα ελεύθερο και ανοικτό γραφικό περιβάλλον οπτικού προγραμματισμού που μας δίνει την δυνατότητα να δημιουργούμε εφαρμογές για κινητά τηλέφωνα τα οποία χρησιμοποιούν λειτουργικό android. Η λογική του εργαλείου βασίζεται στο WYSIWYG (συντομογραφία της φράσης &quot;What You See Is What You Get&quot; (Αυτό που βλέπεις είναι αυτό που θα εμφανιστεί)) λύση της Google, που επιτρέπει τη δημιουργία εφαρμογών για το δημοφιλές λειτουργικό της Android, μέσω απλού drag&#39;n&#39;drop.
 
 Οι συγκεκριμένες εφαρμογές τρέχουν και σε emulator. Αναπτύχθηκε στα εργαστήρια της Google από μια ομάδα με επικεφαλής τον καθηγητή του MIT Hal Abelson (Abelson, 2009).  To περιβάλλον του App Inventor έχει πολλές ομοιότητες με το περιβάλλον του Scratch και του Alice, με τη διαφορά ότι οι εφαρμογές που δημιουργούνται τρέχουν σε έξυπνα τηλέφωνα (smart phones).
+
+Επιλέξαμε αυτή τη πλατφόρμα για να δημιουργήσουμε την εφαρμογή γιατί είναι ένα πρόγραμμα με σχετικά εύκολες εντολές , αλλά πάνω από όλα είναι δωρεάν και ανοιχτού κώδικα.
 
 **Βήματα για την χρήση του App Inventor:**
 
@@ -249,17 +257,39 @@ readvoice="";}} //Reset the variable
 
 ### **5.2 Προγραμματισμός**  **App Inventor**
 
+**Σχεδίαση:**
+
+Το πιο εύκολο κομμάτι της υλοποίησης της εφαρμογής ήταν σχεδίαση της εφαρμογής. Το μόνο που είχαμε να κάνουμε ήταν να ‘σύρουμε’ τα κουμπιά μέσα στο πλαίσιο όπου θα ήταν η εφαρμογή , έπειτα να δώσουμε ονόματα σε καθένα και τέλος να δώσουμε την ιδιότητα στο κουμπί ‘bluetooth’ να ανοίγει την σελίδα με το “Bluetooth”.
+
+**Blocks:**
+
+Τα Blocks είναι ο προγραμματισμός της εφαρμογής. Θυμίζουν το Scratch 1 και 2 , τα οποία προγραμματίζονταν με τον ίδιο τρόπο .
+
+![img](/Images/screenshot_appinventor1.png)
+
+<u>Εικόνα</u>: Στιγμιότυπο από την εφαρμογή
+
+Στα δύο πρώτα Blocks ορίζουμε το κουμπί bluetooth το οποίο θα ανοίγει τη λίστα με τις διαθέσιμες συσκευές ώστε να επιλέξουμε τη συσκευή που εμείς έχουμε ορίσει για το Arduino. Στην επόμενη σειρά ορίζουμε ένα κουτάκι που μας ειδοποιεί αν το Arduino είναι συνδεδεμένο με το κινητό. Αν είναι εμφανίζεται το μήνυμα ‘connected’ ενώ αν δεν είναι εμφανίζεται το μήνυμα ‘not connected’. Τέλος, δίνουμε την ιδιότητα σε κάθε κουμπί από τα 6 για την κίνηση του ρομπότ, ώστε να στέλνει το καθένα δικό του μήνυμα/εντολή στο ρομπότ , το οποίο με τη σειρά του θα το μεταφράσει και θα το μετατρέψει σε κίνηση.
+
+![img](/Images/screenshot_appinventor2.png)
+
+<u>Εικόνα</u>: Στιγμιότυπο από την εφαρμογή
+
+![img](/Images/screenshot_appinventor3.png)
+
+<u>Εικόνα</u>: Φωτογραφία οθόνης κινητού με τα βασικά «κουμπιά» για τον έλεγχο της πλατφόρμας
 
 
-Φωτογραφία οθόνης κινητού με τα βασικά «κουμπιά» για τον έλεγχο της πλατφόρμας
 
-### 6. Φωτογραφίες – Video
+### 6. Φωτογραφίες
 
-![](/Images/final1.jpg)
+![](/Images/p1.jpg)
 
-![](/Images/final2.jpg)
+![](/Images/p2.jpg)
 
-Video με τηλεχειρισμό της πλατφόρμας – robot.
+![](/Images/p3.jpg)
+
+![](/Images/p4.jpg)
 
 
 
